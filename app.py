@@ -43,12 +43,6 @@ st.markdown("""
     font-size: 17px;
 }
 
-.section-title {
-    color: #1e3a8a;
-    font-size: 25px;
-    font-weight: 700;
-}
-
 div.stButton > button {
     background-color: #2563eb;
     color: white;
@@ -66,7 +60,7 @@ div.stButton > button:hover {
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# SIDEBAR NAVIGATION
+# SIDEBAR
 # --------------------------------------------------
 
 st.sidebar.markdown(
@@ -98,26 +92,20 @@ st.sidebar.info(
 # SESSION STATE
 # --------------------------------------------------
 
-if "student_name" not in st.session_state:
-    st.session_state.student_name = ""
+defaults = {
+    "student_name": "",
+    "resume_text": "",
+    "jd_text": "",
+    "resume_skills": [],
+    "jd_skills": [],
+    "project_images": [],
+    "audio": None,
+    "mentor_comments": ""
+}
 
-if "resume_text" not in st.session_state:
-    st.session_state.resume_text = ""
-
-if "jd_text" not in st.session_state:
-    st.session_state.jd_text = ""
-
-if "resume_skills" not in st.session_state:
-    st.session_state.resume_skills = []
-
-if "jd_skills" not in st.session_state:
-    st.session_state.jd_skills = []
-
-if "project_images" not in st.session_state:
-    st.session_state.project_images = []
-
-if "audio" not in st.session_state:
-    st.session_state.audio = None
+for key, value in defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 # --------------------------------------------------
 # HEADER
@@ -246,7 +234,7 @@ elif page == "Student Intake":
                 st.session_state.student_name = student_name
                 st.session_state.resume_text = text
                 st.session_state.jd_text = jd
-                st.session_state.project_images = images
+                st.session_state.project_images = images or []
                 st.session_state.audio = audio
 
                 st.success("Resume and Job Description saved!")
@@ -262,6 +250,10 @@ elif page == "Student Intake":
 
                 st.error(f"Resume extraction failed: {e}")
 
+    # --------------------------------------------------
+    # RESUME PREVIEW
+    # --------------------------------------------------
+
     if st.session_state.resume_text:
 
         st.subheader("📄 Extracted Resume Preview")
@@ -270,6 +262,41 @@ elif page == "Student Intake":
             "Resume Content",
             st.session_state.resume_text,
             height=250
+        )
+
+    # --------------------------------------------------
+    # PROJECT EVIDENCE PREVIEW
+    # --------------------------------------------------
+
+    st.divider()
+
+    st.subheader("🖼️ Project Evidence")
+
+    if st.session_state.project_images:
+
+        st.write(
+            "Uploaded project screenshots:"
+        )
+
+        for i, image_file in enumerate(
+            st.session_state.project_images
+        ):
+
+            st.write(
+                f"Project Screenshot {i + 1}"
+            )
+
+            st.image(
+                image_file.getvalue(),
+                caption=image_file.name,
+                width=500
+            )
+
+    else:
+
+        st.info(
+            "No project screenshots uploaded. "
+            "Upload screenshots above."
         )
 
 # --------------------------------------------------
@@ -402,7 +429,9 @@ elif page == "Interview Feedback":
 
         st.subheader("Recorded Interview Answer")
 
-        st.audio(st.session_state.audio)
+        st.audio(
+            st.session_state.audio
+        )
 
 # --------------------------------------------------
 # MENTOR REVIEW
@@ -437,7 +466,8 @@ elif page == "Mentor Review":
 
     comments = st.text_area(
         "Enter mentor feedback",
-        height=150
+        height=150,
+        value=st.session_state.mentor_comments
     )
 
     if st.button("Save Mentor Feedback"):
@@ -446,8 +476,12 @@ elif page == "Mentor Review":
 
             st.session_state.mentor_comments = comments
 
-            st.success("Mentor feedback saved for this session.")
+            st.success(
+                "Mentor feedback saved for this session."
+            )
 
         else:
 
-            st.warning("Please enter mentor comments.")
+            st.warning(
+                "Please enter mentor comments."
+            )
