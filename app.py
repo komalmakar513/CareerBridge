@@ -11,8 +11,7 @@ st.set_page_config(
 
 st.title("🎯 CareerBridge")
 st.subheader("Evidence-Based Interview Readiness")
-
-st.write("Prepare for placements using evidence-based analysis.")
+st.write("Prepare for placements with evidence-based analysis.")
 
 st.divider()
 
@@ -58,12 +57,10 @@ if st.button("Analyze My Readiness"):
         st.warning("Please record your interview answer.")
 
     else:
-        st.success("All inputs received!")
-
         try:
-            if resume.name.endswith(".pdf"):
+            # Extract resume text
+            if resume.name.lower().endswith(".pdf"):
                 reader = PdfReader(BytesIO(resume.getvalue()))
-
                 resume_text = ""
 
                 for page in reader.pages:
@@ -72,15 +69,82 @@ if st.button("Analyze My Readiness"):
             else:
                 resume_text = resume.getvalue().decode("utf-8")
 
-            st.subheader("📄 Extracted Resume Text")
+            st.success("Resume extracted successfully!")
 
+            st.subheader("📄 Resume Content")
             st.text_area(
-                "Resume Content",
+                "Extracted Resume Text",
                 resume_text,
-                height=300
+                height=250
             )
 
-            st.success("Resume text extraction successful!")
+            # Basic skill matching
+            skills = [
+                "Python", "Java", "SQL", "Machine Learning",
+                "Deep Learning", "HTML", "CSS", "JavaScript",
+                "React", "Node.js", "Django", "Flask",
+                "AWS", "Azure", "Git", "Power BI",
+                "Excel", "Data Analysis", "NLP"
+            ]
+
+            resume_lower = resume_text.lower()
+            jd_lower = job_description.lower()
+
+            resume_skills = [
+                skill for skill in skills
+                if skill.lower() in resume_lower
+            ]
+
+            jd_skills = [
+                skill for skill in skills
+                if skill.lower() in jd_lower
+            ]
+
+            matched_skills = [
+                skill for skill in jd_skills
+                if skill in resume_skills
+            ]
+
+            missing_skills = [
+                skill for skill in jd_skills
+                if skill not in resume_skills
+            ]
+
+            st.divider()
+            st.header("📊 Resume & Job Description Analysis")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.subheader("Skills Found in Resume")
+                if resume_skills:
+                    st.write(", ".join(resume_skills))
+                else:
+                    st.info("No listed skills detected.")
+
+            with col2:
+                st.subheader("Skills Mentioned in Job")
+                if jd_skills:
+                    st.write(", ".join(jd_skills))
+                else:
+                    st.info("No listed skills detected.")
+
+            st.subheader("✅ Matched Skills")
+            if matched_skills:
+                st.success(", ".join(matched_skills))
+            else:
+                st.warning("No matching skills detected.")
+
+            st.subheader("📌 Potential Skill Gaps")
+            if missing_skills:
+                st.warning(", ".join(missing_skills))
+            else:
+                st.success("All detected JD skills appear in resume.")
+
+            st.caption(
+                "This is basic keyword matching, not AI verification. "
+                "A skill appearing in a resume does not prove expertise."
+            )
 
         except Exception as e:
-            st.error(f"Resume extraction failed: {e}")
+            st.error(f"Analysis failed: {e}")
