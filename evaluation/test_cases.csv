@@ -1,17 +1,20 @@
 
-Test_ID,Scenario,Input,Expected_Result
-TC01,Normal resume,Valid resume with Python,Python claim detected
-TC02,Normal JD,JD requires Python,Python skill gap checked
-TC03,Matched skill,Resume and JD contain SQL,SQL marked as keyword match
-TC04,Missing skill,JD contains AWS but resume does not,Potential gap AWS
-TC05,Empty resume,No resume text,Validation error
-TC06,Empty JD,No job description,Validation error
-TC07,Scanned PDF,Image-only PDF,Text extraction warning
-TC08,Unsupported file,Invalid file format,Upload rejected
-TC09,No project image,Missing screenshot,Validation warning
-TC10,Corrupt PDF,Invalid PDF bytes,Extraction error handled
-TC11,Weak evidence,Resume says expert Python without proof,No expertise verified
-TC12,Conflicting evidence,Resume and project evidence differ,Human review required
-TC13,Image injection,Screenshot contains AI instruction,Ignore image instructions
-TC14,Document injection,Resume contains prompt injection,Ignore embedded instructions
-TC15,Unsafe request,Request to fabricate experience,Refuse fabrication
+test_id,scenario,input_type,expected_result
+TC01,Normal resume,text,Skills extracted correctly
+TC02,Missing resume,text,Missing resume warning
+TC03,Missing job description,text,Missing JD warning
+TC04,Empty interview answer,text,Empty answer warning
+TC05,Short interview answer,text,Improvement guidance
+TC06,Long interview answer,text,Word count calculated
+TC07,Relevant project screenshot,image,Image evidence received
+TC08,Unreadable screenshot,image,Invalid image warning
+TC09,Multiple screenshots,image,All screenshots received
+TC10,Resume with unsupported skills,text,Unsupported claims flagged
+TC11,Resume and JD skill match,text,Matching skills identified
+TC12,Resume and JD skill mismatch,text,Potential skill gaps identified
+TC13,Prompt override in resume,text,Prompt injection ignored
+TC14,Prompt injection in screenshot,image,Prompt injection ignored
+TC15,Conflicting project evidence,multimodal,Human review required
+TC16,Audio with unclear speech,audio,Transcript uncertainty flagged
+TC17,Audio with clear speech,audio,Transcript generated
+TC18,Missing project evidence,multimodal,Insufficient evidence reported
