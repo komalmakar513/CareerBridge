@@ -9,142 +9,148 @@ st.set_page_config(
     layout="wide"
 )
 
+# Sidebar
+st.sidebar.title("🎯 CareerBridge")
+page = st.sidebar.radio(
+    "Navigation",
+    [
+        "Student Intake",
+        "Resume Analysis",
+        "Interview Feedback",
+        "Mentor Review"
+    ]
+)
+
 st.title("🎯 CareerBridge")
-st.subheader("Evidence-Based Interview Readiness")
-st.write("Prepare for placements with evidence-based analysis.")
+st.caption("Evidence-Based Interview Readiness")
 
-st.divider()
+# Store results between pages
+if "resume_text" not in st.session_state:
+    st.session_state.resume_text = ""
 
-st.header("Student Intake")
+if "jd_text" not in st.session_state:
+    st.session_state.jd_text = ""
 
-student_name = st.text_input("Student Name")
+if "resume_skills" not in st.session_state:
+    st.session_state.resume_skills = []
 
-resume = st.file_uploader(
-    "Upload Resume",
-    type=["pdf", "txt"]
-)
+if "jd_skills" not in st.session_state:
+    st.session_state.jd_skills = []
 
-job_description = st.text_area(
-    "Paste Job Description",
-    height=200
-)
+if page == "Student Intake":
 
-project_images = st.file_uploader(
-    "Upload Project Screenshots",
-    type=["png", "jpg", "jpeg"],
-    accept_multiple_files=True
-)
+    st.header("📝 Student Intake")
 
-audio = st.audio_input(
-    "Record: Tell me about a project you are proud of."
-)
+    student_name = st.text_input("Student Name")
 
-if st.button("Analyze My Readiness"):
+    resume = st.file_uploader(
+        "Upload Resume",
+        type=["pdf", "txt"]
+    )
 
-    if not student_name.strip():
-        st.warning("Please enter your name.")
+    jd = st.text_area(
+        "Paste Job Description",
+        height=200
+    )
 
-    elif not resume:
-        st.warning("Please upload your resume.")
+    images = st.file_uploader(
+        "Upload Project Screenshots",
+        type=["png", "jpg", "jpeg"],
+        accept_multiple_files=True
+    )
 
-    elif not job_description.strip():
-        st.warning("Please enter job description.")
+    audio = st.audio_input(
+        "Record: Tell me about a project you are proud of."
+    )
 
-    elif not project_images:
-        st.warning("Please upload project screenshots.")
+    if st.button("Save & Extract Resume"):
 
-    elif not audio:
-        st.warning("Please record your interview answer.")
+        if not student_name.strip():
+            st.warning("Enter student name.")
 
+        elif not resume:
+            st.warning("Upload resume.")
+
+        elif not jd.strip():
+            st.warning("Enter job description.")
+
+        else:
+            try:
+                if resume.name.lower().endswith(".pdf"):
+                    reader = PdfReader(BytesIO(resume.getvalue()))
+                    text = ""
+
+                    for p in reader.pages:
+                        text += p.extract_text() or ""
+
+                else:
+                    text = resume.getvalue().decode("utf-8")
+
+                st.session_state.resume_text = text
+                st.session_state.jd_text = jd
+
+                st.success("Resume and JD saved!")
+
+            except Exception as e:
+                st.error(str(e))
+
+elif page == "Resume Analysis":
+
+    st.header("📊 Resume Analysis")
+
+    skills = [
+        "Python", "Java", "SQL", "Machine Learning",
+        "Deep Learning", "HTML", "CSS", "JavaScript",
+        "React", "Node.js", "Django", "Flask",
+        "AWS", "Azure", "Git", "Power BI",
+        "Excel", "Data Analysis", "NLP"
+    ]
+
+    resume_text = st.session_state.resume_text.lower()
+    jd_text = st.session_state.jd_text.lower()
+
+    if not resume_text or not jd_text:
+        st.info("First complete Student Intake.")
     else:
-        try:
-            # Extract resume text
-            if resume.name.lower().endswith(".pdf"):
-                reader = PdfReader(BytesIO(resume.getvalue()))
-                resume_text = ""
+        resume_skills = [
+            s for s in skills if s.lower() in resume_text
+        ]
 
-                for page in reader.pages:
-                    resume_text += page.extract_text() or ""
+        jd_skills = [
+            s for s in skills if s.lower() in jd_text
+        ]
 
-            else:
-                resume_text = resume.getvalue().decode("utf-8")
+        matched = [s for s in jd_skills if s in resume_skills]
+        missing = [s for s in jd_skills if s not in resume_skills]
 
-            st.success("Resume extracted successfully!")
+        st.subheader("Skills Found in Resume")
+        st.write(resume_skills)
 
-            st.subheader("📄 Resume Content")
-            st.text_area(
-                "Extracted Resume Text",
-                resume_text,
-                height=250
-            )
+        st.subheader("Matched Skills")
+        st.success(matched if matched else "No matches")
 
-            # Basic skill matching
-            skills = [
-                "Python", "Java", "SQL", "Machine Learning",
-                "Deep Learning", "HTML", "CSS", "JavaScript",
-                "React", "Node.js", "Django", "Flask",
-                "AWS", "Azure", "Git", "Power BI",
-                "Excel", "Data Analysis", "NLP"
-            ]
+        st.subheader("Potential Skill Gaps")
+        st.warning(missing if missing else "No gaps detected")
 
-            resume_lower = resume_text.lower()
-            jd_lower = job_description.lower()
+        st.caption("Keyword matching only. Not AI verification.")
 
-            resume_skills = [
-                skill for skill in skills
-                if skill.lower() in resume_lower
-            ]
+elif page == "Interview Feedback":
 
-            jd_skills = [
-                skill for skill in skills
-                if skill.lower() in jd_lower
-            ]
+    st.header("🎤 Interview Feedback")
+    st.info("Nexus AI transcription and rubric scoring will be integrated here.")
+    st.write("Planned features:")
+    st.write("- Interview transcript")
+    st.write("- Transparent scoring rubric")
+    st.write("- Evidence-based feedback")
+    st.write("- Improvement plan")
+    st.write("- Five practice questions")
 
-            matched_skills = [
-                skill for skill in jd_skills
-                if skill in resume_skills
-            ]
+elif page == "Mentor Review":
 
-            missing_skills = [
-                skill for skill in jd_skills
-                if skill not in resume_skills
-            ]
-
-            st.divider()
-            st.header("📊 Resume & Job Description Analysis")
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                st.subheader("Skills Found in Resume")
-                if resume_skills:
-                    st.write(", ".join(resume_skills))
-                else:
-                    st.info("No listed skills detected.")
-
-            with col2:
-                st.subheader("Skills Mentioned in Job")
-                if jd_skills:
-                    st.write(", ".join(jd_skills))
-                else:
-                    st.info("No listed skills detected.")
-
-            st.subheader("✅ Matched Skills")
-            if matched_skills:
-                st.success(", ".join(matched_skills))
-            else:
-                st.warning("No matching skills detected.")
-
-            st.subheader("📌 Potential Skill Gaps")
-            if missing_skills:
-                st.warning(", ".join(missing_skills))
-            else:
-                st.success("All detected JD skills appear in resume.")
-
-            st.caption(
-                "This is basic keyword matching, not AI verification. "
-                "A skill appearing in a resume does not prove expertise."
-            )
-
-        except Exception as e:
-            st.error(f"Analysis failed: {e}")
+    st.header("👩‍🏫 Mentor Review")
+    st.info("Mentor review panel will be integrated here.")
+    st.write("Planned features:")
+    st.write("- Review student evidence")
+    st.write("- Review interview scores")
+    st.write("- Approve or edit feedback")
+    st.write("- Add mentor comments")
