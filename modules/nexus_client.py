@@ -1,54 +1,34 @@
 
 import os
-import requests
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 
+API_KEY = os.getenv("NEXUS_API_KEY")
+BASE_URL = os.getenv("NEXUS_BASE_URL")
+MODEL = os.getenv("NEXUS_MODEL", "gpt-4.1-nano")
+
 
 def nexus_chat(prompt, system_prompt="You are CareerBridge AI."):
-    """
-    Send a text prompt to Nexus AI and return the model response.
-    """
+    if not API_KEY:
+        raise ValueError("NEXUS_API_KEY missing in .env")
 
-    api_key = os.getenv("NEXUS_API_KEY")
-    base_url = os.getenv("NEXUS_BASE_URL")
-    model = os.getenv("NEXUS_MODEL")
+    if not BASE_URL:
+        raise ValueError("NEXUS_BASE_URL missing in .env")
 
-    if not api_key or not base_url or not model:
-        raise ValueError(
-            "Nexus configuration missing. Check your .env file."
-        )
+    client = OpenAI(
+        api_key=API_KEY,
+        base_url=BASE_URL.rstrip("/") + "/v1"
+    )
 
-    url = base_url.rstrip("/") + "/v1/chat/completions"
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "model": model,
-        "messages": [
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.2
-    }
-
-    response = requests.post(
-        url,
-        headers=headers,
-        json=payload,
-        timeout=60
+        temperature=0.2
     )
 
-    if response.status_code != 200:
-        raise RuntimeError(
-            f"Nexus API Error {response.status_code}: "
-            f"{response.text[:500]}"
-        )
-
-    result = response.json()
-
-    return result["choices"][0]["message"]["content"]
+    return response.choices[0].message.content
